@@ -47,7 +47,7 @@ namespace ChessNEA
          0.1 king cannot move to any square that is under attack / 
          1. after a move get the kings position /
          2. check LOS on the king for all pieces / 
-        2.1 if there is a pin between the king and the enemy piece then the piece which is pinned cannot move
+        2.1 if there is a pin between the king and the enemy piece then the piece which is pinned cannot move / 
          3. if the king is in any piece LOS then initiate check /
          4. check for legal king moves / 
          4.1 if a friendly piece can block the check /
@@ -68,7 +68,10 @@ namespace ChessNEA
         #region move generation
         public void GetPawnMoves(int selectedRow, int selectedCol, PlayerColour playerColour)
         {
-            
+            if (IsPinned(selectedRow, selectedCol, playerColour))
+            {
+                return; // the piece is pinned and cannot move
+            }
             string yourPiece = chessboard.originalPiece.ToString();
             int pawnDirection = playerColour == PlayerColour.White ? -1 : 1;
             int startRow = playerColour == PlayerColour.White ? 6 : 1;
@@ -98,9 +101,12 @@ namespace ChessNEA
             }
         }
 
-        public void GetKnightMoves(int selectedRow, int selectedCol)
+        public void GetKnightMoves(int selectedRow, int selectedCol, PlayerColour playerColour)
         {
-            
+            if (IsPinned(selectedRow, selectedCol, playerColour))
+            {
+                return; // the piece is pinned and cannot move
+            }
             string knightColour = chessboard.originalPiece.ToString();
             for (int i = 0; i < 8; i++)
             {
@@ -118,11 +124,15 @@ namespace ChessNEA
             }
         }
 
-        public void GetDiagonalMoves(int selectedRow, int selectedCol)
+        public void GetDiagonalMoves(int selectedRow, int selectedCol, PlayerColour playerColour)
         {
            
             for (int i = 0; i < 4; i++)
             {
+                if (IsPinned(selectedRow, selectedCol, playerColour))
+                {
+                    return; // the piece is pinned and cannot move
+                }
                 int row = selectedRow + rowDiagOffsets[i];
                 int col = selectedCol + colDiagOffsets[i];
 
@@ -148,9 +158,12 @@ namespace ChessNEA
             }
         }
 
-        public void GetHorVMoves(int selectedRow, int selectedCol)
+        public void GetHorVMoves(int selectedRow, int selectedCol, PlayerColour playerColour)
         {
-            
+            if (IsPinned(selectedRow, selectedCol, playerColour))
+            {
+                return; // the piece is pinned and cannot move
+            }
             for (int i = 0; i < 4; i++)
             {
                 int row = selectedRow + rowSlideOffsets[i];
@@ -476,20 +489,20 @@ namespace ChessNEA
                     break;
                 case Piece.wKnight:
                 case Piece.bKnight:
-                    GetKnightMoves(row, col);
+                    GetKnightMoves(row, col, playerColour);
                     break;
                 case Piece.wBishop:
                 case Piece.bBishop:
-                    GetDiagonalMoves(row, col);
+                    GetDiagonalMoves(row, col, playerColour);
                     break;
                 case Piece.wRook:
                 case Piece.bRook:
-                    GetHorVMoves(row, col);
+                    GetHorVMoves(row, col, playerColour);
                     break;
                 case Piece.wQueen:
                 case Piece.bQueen:
-                    GetDiagonalMoves(row, col);
-                    GetHorVMoves(row, col);
+                    GetDiagonalMoves(row, col, playerColour);
+                    GetHorVMoves(row, col, playerColour);
                     break;
                 case Piece.wKing:
                 case Piece.bKing:
@@ -570,9 +583,27 @@ namespace ChessNEA
 
             return true;
         }
-      
-        
-           
+
+        private bool IsPinned(int pieceRow, int pieceCol, PlayerColour playerColour)
+        {
+            int kingRow = this.kingRow;
+            int kingCol = this.kingCol;
+
+            if (pieceRow == kingRow || pieceCol == kingCol || Math.Abs(pieceRow - kingRow) == Math.Abs(pieceCol - kingCol)) // check if a piece is in the same x y or diagonal
+            {
+                Piece originalPiece = chessboard.Board[pieceRow, pieceCol]; // temporarily store the original piece
+                chessboard.Board[pieceRow, pieceCol] = Piece.None;
+
+                bool kingInCheck = MoveResultsInCheck(kingRow, kingCol, playerColour); // see if the king is in check after the pinned piece moves
+
+                chessboard.Board[pieceRow, pieceCol] = originalPiece; // restore board state
+
+                return kingInCheck;
+            }
+
+            return false;
+        }
+
     }
 }
 

@@ -114,20 +114,20 @@ namespace ChessNEA
                     break;
                 case Piece.wKnight:
                 case Piece.bKnight:
-                    moves.GetKnightMoves(selectedRow, selectedCol);
+                    moves.GetKnightMoves(selectedRow, selectedCol, currentTurn);
                     break;
                 case Piece.wBishop:
                 case Piece.bBishop:
-                    moves.GetDiagonalMoves(selectedRow, selectedCol);
+                    moves.GetDiagonalMoves(selectedRow, selectedCol, currentTurn);
                     break;
                 case Piece.wRook:
                 case Piece.bRook:
-                    moves.GetHorVMoves(selectedRow, selectedCol);
+                    moves.GetHorVMoves(selectedRow, selectedCol, currentTurn);
                     break;
                 case Piece.wQueen:
                 case Piece.bQueen:
-                    moves.GetDiagonalMoves(selectedRow, selectedCol);
-                    moves.GetHorVMoves(selectedRow, selectedCol);
+                    moves.GetDiagonalMoves(selectedRow, selectedCol, currentTurn);
+                    moves.GetHorVMoves(selectedRow, selectedCol, currentTurn);
                     break;
                 case Piece.wKing:
                 case Piece.bKing:
@@ -164,7 +164,6 @@ namespace ChessNEA
                     if (promotionPiece != Piece.None)
                     {
                         PromotionHandler();
-                        currentTurn = (currentTurn == PlayerColour.White) ? PlayerColour.Black : PlayerColour.White;
                     }
                 }
                 else if (Board[clickRow, clickCol] == Piece.None) // empty square
@@ -265,13 +264,15 @@ namespace ChessNEA
                 }
             }
 
+            moves.GetKingPos(currentTurn);
+            moves.IsKingInCheck(currentTurn);
 
             Board[selectedRow, selectedCol] = Piece.None;
 
         }
         private void UpdateBoard() // after a legal move update the game logic
         {
-            if (originalPiece == Piece.wKing)
+            if (originalPiece == Piece.wKing) // handling castles
             {
                 moves.wKingMoved = true;
                 if (selectedRow == 7 && selectedCol == 4)
