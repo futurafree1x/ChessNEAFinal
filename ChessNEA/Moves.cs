@@ -555,8 +555,6 @@ namespace ChessNEA
             {
                 return false;
             }
-            int saveKingRow = kingRow;
-            int saveKingCol = kingCol;
             int saveOrigRow = chessboard.selectedRow;
             int saveOrigCol = chessboard.selectedCol;
             Piece savePiece = chessboard.originalPiece;
